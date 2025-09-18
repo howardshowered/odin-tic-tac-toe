@@ -7,7 +7,7 @@
   border: 1px solid black;
   gap: 2px;
   padding: 2px;
-  background-color: cyan;
+  background-color: red;
 }
 
 .cell {
@@ -17,6 +17,24 @@
   text-align: center;
   font-size: 2rem;
   border: 1px solid grey;
-  background: lightyellow;
+  background: white;
   cursor: pointer;
+}
+
+.reset {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  background-color: red;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
 }

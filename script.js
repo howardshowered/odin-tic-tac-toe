@@ -50,6 +50,8 @@ function GameController(
     playerOneName = "Player 1",
     playerTwoName = "Player 2"
 ) {
+    const gameBoard = GameBoard();
+    // Player objects   
     const playerOne = { name: playerOneName, symbol: 'X' };
     const playerTwo = { name: playerTwoName, symbol: 'O' };
     let currentPlayer = playerOne;
@@ -66,98 +68,47 @@ function GameController(
     const incrementRound = () => { round++; };
     const getRound = () => round;
     const isGameOver = () => gameOver;
+    const setGameOver = (status) => { gameOver = status; };
 
-    return { switchPlayer, getCurrentPlayer, incrementRound, getRound, isGameOver };
+    const playRound = (row, col) => {
+        if (gameOver) {
+            console.log("Game is already over.");
+            return;
+        }
 
+        if (row < 0 || row >= 3 || col < 0 || col >= 3) {
+            console.log("Invalid move. Row and Column must be between 0 and 2.");
+            return;
+        }
 
-}
-const playRound = (gameController, gameBoard, row, col) => {
-    if (gameController.isGameOver()) {
-        console.log("Game is already over.");
-        return;
+        const cell = gameBoard.getBoard()[row][col];
+        if (!cell.isEmpty()) {
+            console.log("Cell is already occupied. Choose another cell.");
+            return;
+        }       
     }
 
-    if (row < 0 || row >= 3 || col < 0 || col >= 3) {
-        console.log("Invalid move. Row and Column must be between 0 and 2.");
-        return;
-    }
-
-    const cell = gameBoard.getBoard()[row][col];
-    if (!cell.isEmpty()) {
-        console.log("Cell is already occupied. Choose another cell.");
-        return;
-    }
-
-    const currentPlayer = gameController.getCurrentPlayer();
-    cell.setValue(currentPlayer.symbol);
-    gameController.incrementRound();
-
-    const checkWin = (symbol) => {
-        // Check rows and columns
-        for (let i = 0; i < 3; i++) {
-            if (gameBoard.getBoard()[i][0].getValue() === symbol && gameBoard.getBoard()[i][1].getValue() === symbol && gameBoard.getBoard()[i][2].getValue() === symbol) {
-                return true;
-            }
-            if (gameBoard.getBoard()[0][i].getValue() === symbol && gameBoard.getBoard()[1][i].getValue() === symbol && gameBoard.getBoard()[2][i].getValue() === symbol) {
-                return true;
-            }
-        }
-        // Check diagonals
-        if (gameBoard.getBoard()[0][0].getValue() === symbol && gameBoard.getBoard()[1][1].getValue() === symbol && gameBoard.getBoard()[2][2].getValue() === symbol) {
-            return true;
-        }
-        if (gameBoard.getBoard()[0][2].getValue() === symbol && gameBoard.getBoard()[1][1].getValue() === symbol && gameBoard.getBoard()[2][0].getValue() === symbol) {
-            return true;
-        }
-        return false;
+    return {
+        switchPlayer,
+        getCurrentPlayer,
+        incrementRound,
+        getRound,
+        isGameOver,
+        playRound,
+        setGameOver,
+        getBoard: gameBoard.getBoard
     };
-
-    // Check for win or draw conditions here (not implemented in this snippet)
-    if(gameController.getRound() >= 5) {
-        // Check rows, columns, and diagonals for a win
-
-        if (checkWin(currentPlayer.symbol)) {
-            screenController.renderBoard(gameBoard.getBoard());
-            console.log(`${currentPlayer.name} wins!`);
-            gameController.gameOver = true;
-  
-            alert(`${currentPlayer.name} wins!`);
-            // gameController.gameOver = false;
-            gameController.round = 0;
-            gameBoard.resetBoard();
-            screenController.renderBoard(gameBoard);
-            // screenController.updateTurn(gameController.getCurrentPlayer());
-            return;
-        } else if (gameController.getRound() === gameController.maxRounds) {
-            console.log("It's a draw!");
-            gameController.gameOver = true;
-                        alert("It's a draw!");
-            // gameController.gameOver = false;
-            gameController.round = 0;
-            gameBoard.resetBoard(); 
-            screenController.renderBoard(gameBoard.getBoard());
-            screenController.updateTurn(gameController.getCurrentPlayer());
-            return;
-        }
-    }
-
-    console.log(`Round ${gameController.getRound()}: ${currentPlayer.name} placed ${currentPlayer.symbol} at (${row}, ${col})`);
-
-    // if(!gameController.isGameOver()) {
-    //     console.log(`It's ${gameController.getCurrentPlayer().name}'s turn.`);
-    // } else {
-    //     console.log("Game Over.");
-    //     alert("Game Over.");
-    // }
-
-    gameController.switchPlayer();
 }
 
 function ScreenController() {
+    const gameController = GameController();
+    const gameBoard = gameController.getBoard();
     const boardElement = document.querySelector('.board');
     const turnElement = document.querySelector('.turn');
+    const currentPlayer = gameController.getCurrentPlayer();
+    const resetButton = document.querySelector('.reset');
 
-    const renderBoard = (gameBoard) => {
+    const renderBoard = () => {
         boardElement.innerHTML = '';
         for (let i = 0; i < 3; i++) {
             for (let j = 0; j < 3; j++) {
@@ -171,6 +122,76 @@ function ScreenController() {
         }
     };
 
+    function playRound(row, col) {
+        if (gameController.isGameOver()) {
+            console.log("Game is already over.");
+            return;
+        }
+
+        if (row < 0 || row >= 3 || col < 0 || col >= 3) {
+            console.log("Invalid move. Row and Column must be between 0 and 2.");
+            return;
+        }
+
+        const cell = gameBoard[row][col];
+        if (!cell.isEmpty()) {
+            console.log("Cell is already occupied. Choose another cell.");
+            return;
+        }
+
+        const currentPlayer = gameController.getCurrentPlayer();
+        cell.setValue(currentPlayer.symbol);
+        renderBoard();
+        gameController.incrementRound();
+
+        const checkWin = (symbol) => {
+            // Check rows and columns
+            for (let i = 0; i < 3; i++) {
+                if (gameBoard[i][0].getValue() === symbol &&
+                    gameBoard[i][1].getValue() === symbol && 
+                    gameBoard[i][2].getValue() === symbol) {
+                    return true;
+                }
+                if (gameBoard[0][i].getValue() === symbol &&
+                    gameBoard[1][i].getValue() === symbol && 
+                    gameBoard[2][i].getValue() === symbol) {
+                    return true;
+                }
+            }
+            // Check diagonals
+            if (gameBoard[0][0].getValue() === symbol && 
+                gameBoard[1][1].getValue() === symbol && 
+                gameBoard[2][2].getValue() === symbol) {
+                return true;
+            }
+            if (gameBoard[0][2].getValue() === symbol && 
+                gameBoard[1][1].getValue() === symbol &&
+                gameBoard[2][0].getValue() === symbol) {
+                return true;
+            }
+            return false;
+        };
+
+        // Check for win or draw conditions here (not implemented in this snippet)
+        if(gameController.getRound() >= 5) {
+            // Check rows, columns, and diagonals for a win
+
+            if (checkWin(currentPlayer.symbol)) {
+                renderBoard();
+                console.log(`${currentPlayer.name} wins!`);
+                gameController.setGameOver(true);
+                turnElement.textContent = `${currentPlayer.name} wins!`;
+            } else if (gameController.getRound() === gameController.maxRounds) {
+                console.log("It's a draw!");
+                gameController.setGameOver(true);
+                turnElement.textContent = "It's a draw!";
+            }
+        }
+
+        console.log(`Round ${gameController.getRound()}: ${currentPlayer.name} placed ${currentPlayer.symbol} at (${row}, ${col})`);
+        gameController.switchPlayer();
+    }
+
     function clickHandlerBoard(e) {
         if(gameController.isGameOver()) {
             return;
@@ -180,32 +201,40 @@ function ScreenController() {
         if (selectedColumn === undefined || selectedRow === undefined) {
             return;
         }
-        playRound(gameController, gameBoard, selectedRow, selectedColumn);
-        renderBoard(gameBoard.getBoard());
+        playRound( selectedRow, selectedColumn);
+        // renderBoard();
         if (!gameController.isGameOver()) {
             updateTurn(gameController.getCurrentPlayer());
-        } else {
-            turnElement.textContent = "Game Over.";
-        }
+        } 
     }
+
+    function resetButtonHandler() {
+        gameController.setGameOver(false);
+        gameController.round = 0;
+        gameBoard.forEach(row => row.forEach(cell => cell.reset()));
+        renderBoard();
+        updateTurn(gameController.getCurrentPlayer());
+        console.log("Game reset. Player 1's turn.");
+    }
+
+    resetButton.addEventListener('click', resetButtonHandler);
 
     boardElement.addEventListener('click', clickHandlerBoard);
 
-    const updateTurn = (currentPlayer) => {
+    const updateTurn = () => {
         turnElement.textContent = `It's ${currentPlayer.name}'s turn.`;
     };
 
 
-
+    renderBoard();
+    updateTurn();
     return { renderBoard, updateTurn };
 }
 // console.log("Tic Tac Toe Game Initialized");
 // console.log("Player 1: X, Player 2: O");
-const gameBoard = GameBoard();
-const gameController = GameController("Alice", "Bob");
+// const gameBoard = GameBoard();
+// const gameController = GameController("Alice", "Bob");
 const screenController = ScreenController();
-screenController.renderBoard(gameBoard.getBoard());
-screenController.updateTurn(gameController.getCurrentPlayer());
     
 console.log("Tic Tac Toe Game Initialized");
 console.log("Player 1: X, Player 2: O");
